@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCreateProduct, useUpdateProduct } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import type { Product } from '../models/product';
+import { useToast } from '../context/ToastContext';
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -20,14 +21,18 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onClose, pr
   const { data: categories } = useCategories();
   const createProductMutation = useCreateProduct();
   const updateProductMutation = useUpdateProduct();
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (productToEdit) {
+      const editCategory = (productToEdit as { categoryId?: string | { _id?: string; id?: string } }).categoryId;
+      const resolvedCategoryId =
+        typeof editCategory === 'string' ? editCategory : editCategory?._id ?? editCategory?.id ?? '';
       setName(productToEdit.name);
       setDescription(productToEdit.description);
       setPrice(productToEdit.price);
       setQuantity(productToEdit.quantity);
-      setCategoryId(productToEdit.categoryId);
+      setCategoryId(resolvedCategoryId);
       setImages(null);
     } else {
       setName('');
@@ -54,12 +59,23 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onClose, pr
       }
     }
 
-    if (productToEdit) {
-      await updateProductMutation.mutateAsync({ id: productToEdit.id, data: formData });
-    } else {
-      await createProductMutation.mutateAsync(formData);
+    try {
+      if (productToEdit) {
+        if (!productToEdit?._id) {
+          console.error('Missing product _id', productToEdit);
+          showToast('Missing product ID. Please refresh and try again.', 'error');
+          return;
+        }
+        await updateProductMutation.mutateAsync({ id: productToEdit._id, data: formData });
+        showToast('Product updated successfully', 'success');
+      } else {
+        await createProductMutation.mutateAsync(formData);
+        showToast('Product created successfully', 'success');
+      }
+      onClose();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Product save failed', 'error');
     }
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -76,10 +92,14 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onClose, pr
             </div>
             <div className="mb-4">
               <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-              <select id="category" className="mt-1 block w-full input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
-                <option value="" disabled>Select a category</option>
-                {categories?.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-              </select>
+            <select id="category" className="mt-1 block w-full input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
+              <option value="" disabled>Select a category</option>
+              {categories?.map(cat => (
+                <option key={cat._id ?? cat.id} value={cat._id ?? cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
             </div>
             <div className="mb-4">
               <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price</label>

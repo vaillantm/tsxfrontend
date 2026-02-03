@@ -4,6 +4,7 @@ import { useCategories } from '../hooks/useCategories';
 import { LuPlus, LuSearch } from 'react-icons/lu';
 import ProductFormModal from './ProductFormModal';
 import { Product } from '../models/product';
+import { useToast } from '../context/ToastContext';
 
 const Products: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,6 +14,7 @@ const Products: React.FC = () => {
   const { data: products, isLoading, error } = useProducts();
   const { data: categories } = useCategories();
   const deleteProductMutation = useDeleteProduct();
+  const { showToast } = useToast();
 
   const getCategoryName = (categoryId: string) => {
     return categories?.find(cat => cat.id === categoryId)?.name || 'N/A';
@@ -39,8 +41,12 @@ const Products: React.FC = () => {
   };
 
   const handleDeleteProduct = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+    if (!window.confirm('Are you sure you want to delete this product?')) return;
+    try {
       await deleteProductMutation.mutateAsync(id);
+      showToast('Product deleted successfully', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Product delete failed', 'error');
     }
   };
 
@@ -127,7 +133,7 @@ const Products: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
               {filteredProducts.map((product) => (
-                <tr key={product.id}>
+                <tr key={product._id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
                     {product.name}
                   </td>
@@ -148,7 +154,7 @@ const Products: React.FC = () => {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDeleteProduct(product.id)}
+                      onClick={() => handleDeleteProduct(product._id)}
                       className="text-red-600 hover:text-red-900"
                     >
                       Delete

@@ -9,12 +9,9 @@ export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'c
 
 export interface Order {
   id: string;
+  _id?: string;
   createdAt: string;
   status: OrderStatus;
   totalAmount: number;
-  items: OrderItem[];
-}
-
-export interface CreateOrderPayload {
   items: OrderItem[];
 }

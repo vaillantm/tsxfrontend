@@ -3,9 +3,11 @@ import { faHeart } from '@fortawesome/free-regular-svg-icons';
 import { useNavigate } from 'react-router-dom';
 import CategoryNavRemote from './CategoryNavRemote';
 import { useProducts } from '../hooks/useProducts';
+import { useCategories } from '../hooks/useCategories';
 
 const FeaturedProducts = () => {
   const { data: products, isLoading, isError, error } = useProducts();
+  const { data: categories } = useCategories();
   const navigate = useNavigate();
 
   // Loading state
@@ -27,6 +29,12 @@ const FeaturedProducts = () => {
   }
 
   const featuredProducts = products ?? [];
+  const getCategoryName = (categoryId: string) => {
+    return categories?.find(cat => cat.id === categoryId)?.name || 'Products';
+  };
+  const getCategoryPath = (categoryId: string) => {
+    return categories?.find(cat => cat.id === categoryId)?.path || '';
+  };
 
   return (
     <div className="max-w-[1200px] mx-auto px-4">
@@ -45,16 +53,27 @@ const FeaturedProducts = () => {
 
       <div className="grid grid-cols-5 gap-6">
         {featuredProducts.map((product) => (
-          <div key={product.id} className="relative bg-white cursor-pointer" onClick={() => navigate(`/shop/${product.category}`, { state: { product } })}>
+          <div
+            key={product._id}
+            className="relative bg-white cursor-pointer"
+            onClick={() => {
+              const path = getCategoryPath(product.categoryId);
+              navigate(path ? `/shop/${path}` : '/shop', { state: { product } });
+            }}
+          >
             <div className="relative bg-gray-50 aspect-[4/5] flex items-center justify-center overflow-hidden mb-4 rounded">
               <button className="absolute top-3 right-3 text-gray-400 text-lg cursor-pointer z-10 hover:text-red-500 transition" onClick={(e) => e.stopPropagation()}>
                 <FontAwesomeIcon icon={faHeart} />
               </button>
-              <img src={product.img || 'https://via.placeholder.com/300x400?text=No+Image'} alt={product.name} className="w-full h-full object-cover" />
+              <img
+                src={product.images?.[0] || 'https://via.placeholder.com/300x400?text=No+Image'}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="text-left">
               <div className="text-[11px] text-gray-400 uppercase tracking-wider mb-1 font-semibold">
-                {product.tags}
+                {getCategoryName(product.categoryId)}
               </div>
               <div className="font-semibold text-[13px] text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis leading-snug">
                 {product.name}

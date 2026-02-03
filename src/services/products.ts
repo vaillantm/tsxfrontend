@@ -2,7 +2,7 @@ import { api } from './api';
 import type { Product } from '../models/product';
 
 type BackendProduct = {
-  id: string;
+  _id: string;
   name: string;
   description: string;
   price: number;
@@ -12,9 +12,13 @@ type BackendProduct = {
   vendorId: string;
 };
 
+type ProductListResponse =
+  | BackendProduct[]
+  | { data: BackendProduct[]; page?: number; limit?: number; total?: number };
+
 function mapBackendProduct(p: BackendProduct): Product {
   return {
-    id: p.id,
+    _id: p._id,
     name: p.name,
     description: p.description,
     price: p.price,
@@ -25,9 +29,14 @@ function mapBackendProduct(p: BackendProduct): Product {
   };
 }
 
+function normalizeList(response: ProductListResponse): BackendProduct[] {
+  if (Array.isArray(response)) return response;
+  return response.data ?? [];
+}
+
 export async function getAll(): Promise<Product[]> {
-  const { data } = await api.get<BackendProduct[]>('/api/products');
-  return data.map(mapBackendProduct);
+  const { data } = await api.get<ProductListResponse>('/api/products');
+  return normalizeList(data).map(mapBackendProduct);
 }
 
 export async function getById(id: string): Promise<Product> {
@@ -40,8 +49,8 @@ export async function getByCategory(categoryIdentifier: string): Promise<Product
   const isObjectId = /^[a-f0-9]{24}$/i.test(categoryIdentifier);
   const params = isObjectId ? { categoryId: categoryIdentifier } : { category: categoryIdentifier };
   
-  const { data } = await api.get<BackendProduct[]>('/api/products', { params });
-  return data.map(mapBackendProduct);
+  const { data } = await api.get<ProductListResponse>('/api/products', { params });
+  return normalizeList(data).map(mapBackendProduct);
 }
 
 export async function create(payload: FormData): Promise<Product> {

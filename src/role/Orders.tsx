@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
-import { useAdminOrders, useUpdateOrderStatus, useCancelOrder } from '../hooks/useOrders';
+import { useAdminOrders, useOrders, useUpdateOrderStatus, useCancelOrder } from '../hooks/useOrders';
 import { useAuthContext } from '../context/AuthContext';
 import type { OrderStatus, Order } from '../models/order'; // Import Order type
 import { LuSearch } from 'react-icons/lu';
+import { useToast } from '../context/ToastContext';
 
 const Orders: React.FC = () => {
   const { user } = useAuthContext();
-  const { data: ordersData, isLoading, error } = useAdminOrders(); // Renamed data to ordersData
+  const isAdmin = user?.role === 'admin';
+  const hasRole = Boolean(user?.role);
+  const adminQuery = useAdminOrders(hasRole && isAdmin);
+  const userQuery = useOrders(hasRole && !isAdmin);
+  const { data: ordersData, isLoading, error } = isAdmin ? adminQuery : userQuery;
   const [searchTerm, setSearchTerm] = useState('');
 
   const updateOrderStatusMutation = useUpdateOrderStatus();
   const cancelOrderMutation = useCancelOrder();
+  const { showToast } = useToast();
 
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
@@ -30,18 +36,30 @@ const Orders: React.FC = () => {
   };
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
-    await updateOrderStatusMutation.mutateAsync({ id: orderId, status: newStatus });
+    try {
+      await updateOrderStatusMutation.mutateAsync({ id: orderId, status: newStatus });
+      showToast('Order status updated', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Order status update failed', 'error');
+    }
   };
 
   const handleCancelOrder = async (orderId: string) => {
     if (window.confirm('Are you sure you want to cancel this order?')) {
-      await cancelOrderMutation.mutateAsync(orderId);
+      try {
+        await cancelOrderMutation.mutateAsync(orderId);
+        showToast('Order cancelled', 'success');
+      } catch (err) {
+        showToast(err instanceof Error ? err.message : 'Order cancel failed', 'error');
+      }
     }
   };
 
-  const filteredOrders = (ordersData || []).filter((order: Order) => // Explicitly type order
-    order.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const safeSearch = (searchTerm || '').toLowerCase();
+  const filteredOrders = (ordersData || []).filter((order: Order) => {
+    const id = order?.id ? String(order.id).toLowerCase() : '';
+    return id.includes(safeSearch);
+  });
 
   if (isLoading) {
     return (
@@ -107,16 +125,16 @@ const Orders: React.FC = () => {
                 {filteredOrders.map((order: Order) => (
                   <tr key={order.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                      #{order.id.slice(0, 8)}
+                      #{String(order.id || '').slice(0, 8)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                      {new Date(order.createdAt).toLocaleDateString()}
+                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                      {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                      {(order.items?.length ?? 0)} item{(order.items?.length ?? 0) !== 1 ? 's' : ''}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">
-                      ${order.totalAmount.toFixed(2)}
+                      ${Number(order.totalAmount ?? 0).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusColor(order.status)}`}>
@@ -144,6 +162,9 @@ const Orders: React.FC = () => {
                         >
                           Cancel
                         </button>
+                      )}
+                      {!(user?.role === 'admin') && !(user?.role === 'customer' && order.status === 'pending') && (
+                        <span className="text-slate-400">No actions</span>
                       )}
                     </td>
                   </tr>

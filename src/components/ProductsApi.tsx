@@ -1,9 +1,11 @@
 import { LayoutGrid, List } from 'lucide-react';
 import { useProducts } from '../hooks/useProducts';
+import { useCategories } from '../hooks/useCategories';
 import ProductsGrid from './ProductsGrid';
 
 const ProductsApi = () => {
   const { data: products, isLoading, isError, error } = useProducts();
+  const { data: categories } = useCategories();
 
   if (isLoading) {
     return (
@@ -32,7 +34,7 @@ const ProductsApi = () => {
           <List className="w-4 h-4" />
         </div>
       </div>
-      <ProductsGrid products={products ?? []} />
+      <ProductsGrid products={products ?? []} categories={categories ?? []} />
     </div>
   );
 };

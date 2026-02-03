@@ -1,54 +1,34 @@
 import React, { useState } from 'react';
-import Sidebar from './Sidebar';
-import Header from './Header';
-import Dashboard from './Dashboard';
-import Orders from './Orders.tsx';
-// import Users from '/Users';
-import Products from './Products';
-import { Section } from './Sidebar'; // Import Section type
+import { Outlet } from 'react-router-dom';
+import { useAuthContext } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
+
+import AdminDashboard from './AdminDashboard';
 
 const Admino: React.FC = () => {
-  const [activeSection, setActiveSection] = useState<Section>('dashboard');
+  const { user } = useAuthContext();
+  const { items, subtotal } = useCart(); // Still keep useCart if any logic here depends on it, but the components are removed.
+  const [isCartOpen, setIsCartOpen] = useState(false); // Same for useState.
 
-  const renderContent = () => {
-    switch (activeSection) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'order-status':
-        return <Orders />;
-      // case 'users':
-      //   return <Users />;
-      case 'products':
-        return <Products />;
-      default:
-        return <Dashboard />;
-    }
-  };
+  const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const handleCartOpen = () => setIsCartOpen(true);
+  const handleCartClose = () => setIsCartOpen(false);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-      <Sidebar activeSection={activeSection} onNavigate={setActiveSection} />
-      
-      <div className="ml-[280px] p-10 min-h-screen">
-        <Header />
-        
-        <main className="animate-fadeIn">
-          {renderContent()}
-        </main>
-      </div>
+    <div className="min-h-screen flex flex-col bg-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+     <main className="flex-grow">
+        <div className="max-w-[1200px] mx-auto px-4 py-12">
+          <AdminDashboard />
+        </div>
+      </main>
 
+      {/* Global Styles & Animations */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
         
         @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         
         .animate-fadeIn {

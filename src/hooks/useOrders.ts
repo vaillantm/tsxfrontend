@@ -8,17 +8,19 @@ const keys = {
   byId: (id: string) => [...keys.all, id] as const,
 };
 
-export function useOrders() {
+export function useOrders(enabled = true) {
   return useQuery({
     queryKey: keys.all,
     queryFn: OrderService.list,
+    enabled,
   });
 }
 
-export function useAdminOrders() {
+export function useAdminOrders(enabled = true) {
   return useQuery({
     queryKey: keys.admin,
     queryFn: OrderService.listAdmin,
+    enabled,
   });
 }
 
@@ -33,7 +35,7 @@ export function useOrder(id: string) {
 export function useCreateOrder() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: OrderService.create,
+    mutationFn: () => OrderService.create(),
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.all }),
   });
 }
@@ -55,6 +57,7 @@ export function useUpdateOrderStatus() {
     mutationFn: ({ id, status }: { id: string; status: OrderStatus }) => OrderService.updateStatus(id, status),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: keys.all });
+      qc.invalidateQueries({ queryKey: keys.admin });
       qc.invalidateQueries({ queryKey: keys.byId(variables.id) });
     },
   });

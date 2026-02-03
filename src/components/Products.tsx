@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronRight, LayoutGrid, List, Star } from 'lucide-react';
+import { ChevronDown, ChevronRight, LayoutGrid, List } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useProducts, useProductsByCategory } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
@@ -37,6 +37,10 @@ const Products = () => {
 
   // Subcategories are not provided by API; keep placeholder state no-op
   const filteredProducts = products;
+
+  const getCategoryName = (categoryId: string) => {
+    return categories?.find(cat => cat.id === categoryId)?.name || 'Products';
+  };
 
   const activeCategoryName = isAll
     ? 'All Products'
@@ -131,39 +135,27 @@ const Products = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-12">
             {filteredProducts.map(product => (
               <div 
-                key={product.id} 
+                key={product._id} 
                 className="group cursor-pointer"
-                onClick={() => navigate(`/product/${product.id}`, { state: { product } })}
+                onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/product/${product.id}`, { state: { product } }); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/product/${product._id}`, { state: { product } }); }}
               >
                 <div className="bg-gray-50 aspect-square flex items-center justify-center p-8 mb-4 relative overflow-hidden rounded-md border border-gray-100">
                   <img 
-                    src={product.img} 
+                    src={product.images?.[0] || 'https://via.placeholder.com/400x400?text=No+Image'} 
                     alt={product.name}
                     className="mix-blend-multiply group-hover:scale-110 transition-transform duration-500 max-h-full object-contain"
                   />
                 </div>
                 <div className="text-center">
                   <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">
-                    {product.tags}
+                    {getCategoryName(product.categoryId)}
                   </p>
                   <h4 className="text-sm font-medium mb-1 group-hover:text-blue-600 transition-colors">
                     {product.name}
                   </h4>
-                  <div className="flex justify-center text-yellow-400 mb-1">
-                    {Array(5).fill(0).map((_, i) => (
-                      <Star 
-                        key={i}
-                        className={`w-3 h-3 ${
-                          i < product.rating 
-                            ? 'fill-current text-yellow-400' 
-                            : 'text-gray-200'
-                        }`}
-                      />
-                    ))}
-                  </div>
                   <p className="text-sm font-bold text-gray-900">
                     ${product.price.toFixed(2)}
                   </p>
@@ -173,13 +165,10 @@ const Products = () => {
                       onClick={(e) => {
                         e.stopPropagation();
                         addItem({
-                          id: product.id,
+                          id: product._id,
                           name: product.name,
-                          category: product.tags,
                           price: product.price,
-                          rating: product.rating,
-                          reviews: 0,
-                          image: product.img,
+                          image: product.images?.[0] || 'https://via.placeholder.com/400x400?text=No+Image',
                         }, 1);
                       }}
                     >

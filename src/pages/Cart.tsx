@@ -11,7 +11,7 @@ import CartSidebar from '../components/CartSidebar';
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { items, subtotal, updateQty, removeItem } = useCart();
+  const { items, subtotal, updateQty, removeItem, clear } = useCart();
   
   // State for the sidebar (if someone clicks the cart icon while on the cart page)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -63,7 +63,6 @@ const Cart = () => {
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="font-semibold text-gray-800">{item.name}</div>
-                        <div className="text-sm text-gray-500">{item.category}</div>
                       </div>
                       <button 
                         className="text-gray-400 hover:text-red-500 text-2xl leading-none transition-colors" 
@@ -119,6 +118,12 @@ const Cart = () => {
                     onClick={() => navigate('/shop/jewellery')}
                   >
                     Continue Shopping
+                  </button>
+                  <button
+                    className="w-full bg-white border border-gray-200 text-gray-700 font-semibold py-3 rounded transition-colors uppercase tracking-widest text-sm hover:bg-gray-50"
+                    onClick={clear}
+                  >
+                    Clear Cart
                   </button>
                 </div>
                 <p className="text-[11px] text-gray-400 mt-4 text-center leading-relaxed">

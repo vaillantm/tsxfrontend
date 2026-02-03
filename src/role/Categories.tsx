@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useCategories, useDeleteCategory } from '../hooks/useCategories';
 import { LuPlus, LuSearch } from 'react-icons/lu';
 import CategoryFormModal from './CategoryFormModal'; // Import the new modal component
+import { useToast } from '../context/ToastContext';
 
 const Categories: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,6 +12,7 @@ const Categories: React.FC = () => {
   const { data: categories, isLoading, error } = useCategories();
   console.log('Categories data:', categories);
   const deleteCategoryMutation = useDeleteCategory();
+  const { showToast } = useToast();
 
   const filteredCategories =
     categories?.filter(category => {
@@ -33,8 +35,12 @@ const Categories: React.FC = () => {
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
+    if (!window.confirm('Are you sure you want to delete this category?')) return;
+    try {
       await deleteCategoryMutation.mutateAsync(id);
+      showToast('Category deleted successfully', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Category delete failed', 'error');
     }
   };
 

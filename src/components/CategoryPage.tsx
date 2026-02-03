@@ -88,8 +88,8 @@ const CategoryPage = () => {
                     {product.category}
                   </div>
                   <div className="font-semibold text-[15px] my-1 text-gray-800">{product.name}</div>
-                  {renderStars(product.rating)}
-                  <div className="text-sm text-gray-500 mb-1">({product.reviews})</div>
+                  {renderStars(product.rating ?? 0)}
+                  <div className="text-sm text-gray-500 mb-1">({product.reviews ?? 0})</div>
                   <div className="font-bold text-gray-800 text-base">${product.price.toFixed(2)}</div>
                 </div>
               </div>

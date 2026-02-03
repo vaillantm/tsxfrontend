@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useCreateOrder } from '../hooks/useOrders';
 import TopBar from '../components/TopBar';
 import MainHeader from '../components/MainHeader';
 import Navbar from '../components/Navbar';
@@ -7,7 +8,8 @@ import Footer from '../components/Footer';
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, subtotal } = useCart();
+  const { items, subtotal, clear } = useCart();
+  const createOrderMutation = useCreateOrder();
   const shipping = items.length > 0 ? 5 : 0;
   const total = subtotal + shipping;
 
@@ -117,7 +119,17 @@ const Checkout = () => {
               Sorry, it seems that there are no available payment methods. Please contact us if you require assistance or wish to make alternate arrangements.
             </div>
 
-            <button className="mt-4 w-full bg-orange-500 text-white font-bold py-3 rounded">PLACE ORDER</button>
+            <button
+              className="mt-4 w-full bg-orange-500 text-white font-bold py-3 rounded disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={items.length === 0 || createOrderMutation.isPending}
+              onClick={async () => {
+                await createOrderMutation.mutateAsync();
+                clear();
+                navigate('/customer/orders');
+              }}
+            >
+              {createOrderMutation.isPending ? 'PLACING ORDER...' : 'PLACE ORDER'}
+            </button>
           </aside>
         </div>
       </main>

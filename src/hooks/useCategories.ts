@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as CategoryService from '../services/categories';
-import type { Category } from '../models/category';
 
 const keys = {
   all: ['categories'] as const,

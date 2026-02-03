@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
 import type { CartItem } from '../types';
+import { useCartQuery, useAddToCart, useUpdateCartQuantity, useRemoveFromCart, useClearCart } from '../hooks/useCartApi';
+import { useProducts } from '../hooks/useProducts';
 
 type CartContextType = {
   isOpen: boolean;
@@ -9,6 +11,7 @@ type CartContextType = {
   addItem: (item: Omit<CartItem, 'quantity'>, qty?: number) => void;
   removeItem: (id: string) => void;
   updateQty: (id: string, qty: number) => void;
+  clear: () => void;
   subtotal: number;
 };
 
@@ -16,29 +19,51 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [items, setItems] = useState<CartItem[]>([]);
+  const { data: cart } = useCartQuery();
+  const { data: products } = useProducts();
+  const addMutation = useAddToCart();
+  const updateMutation = useUpdateCartQuantity();
+  const removeMutation = useRemoveFromCart();
+  const clearMutation = useClearCart();
 
   const open = () => setIsOpen(true);
   const close = () => setIsOpen(false);
 
-  const addItem = (item: Omit<CartItem, 'quantity'>, qty: number = 1) => {
-    setItems(prev => {
-      const existing = prev.find(i => i.id === item.id);
-      if (existing) {
-        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + qty } : i);
-      }
-      return [...prev, { ...item, quantity: qty }];
+  const items = useMemo<CartItem[]>(() => {
+    const byId = new Map(products?.map(p => [p._id, p]));
+    return (cart?.items ?? []).map((item) => {
+      const product = byId.get(String(item.productId));
+      return {
+        id: String(item.productId),
+        name: item.name || product?.name || 'Product',
+        price: item.price ?? product?.price ?? 0,
+        image: item.image || product?.images?.[0] || 'https://via.placeholder.com/400x400?text=No+Image',
+        quantity: item.quantity,
+      };
     });
+  }, [cart?.items, products]);
+
+  const addItem = (item: Omit<CartItem, 'quantity'>, qty: number = 1) => {
+    addMutation.mutate({ productId: item.id, quantity: qty });
     setIsOpen(true);
   };
 
-  const removeItem = (id: string) => setItems(prev => prev.filter(i => i.id !== id));
+  const removeItem = (id: string) => {
+    removeMutation.mutate({ productId: id });
+  };
 
-  const updateQty = (id: string, qty: number) => setItems(prev => prev.map(i => i.id === id ? { ...i, quantity: Math.max(1, qty) } : i));
+  const updateQty = (id: string, qty: number) => {
+    const safeQty = Math.max(1, qty);
+    updateMutation.mutate({ productId: id, quantity: safeQty });
+  };
+
+  const clear = () => {
+    clearMutation.mutate();
+  };
 
   const subtotal = useMemo(() => items.reduce((s, i) => s + i.price * i.quantity, 0), [items]);
 
-  const value: CartContextType = { isOpen, open, close, items, addItem, removeItem, updateQty, subtotal };
+  const value: CartContextType = { isOpen, open, close, items, addItem, removeItem, updateQty, clear, subtotal };
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 

@@ -31,7 +31,7 @@ export async function updateQuantity(payload: UpdateQuantityPayload): Promise<Ca
     if (idx !== -1) mockCart.items[idx].quantity = payload.quantity;
     return mockCart;
   }
-  const { data } = await api.post<Cart>('/api/cart/quantity', payload);
+  const { data } = await api.patch<Cart>('/api/cart/quantity', payload);
   return data;
 }
 
@@ -40,7 +40,7 @@ export async function removeItem(payload: RemoveFromCartPayload): Promise<Cart> 
     mockCart.items = mockCart.items.filter(i => i.productId !== payload.productId);
     return mockCart;
   }
-  const { data } = await api.post<Cart>('/api/cart/remove', payload);
+  const { data } = await api.delete<Cart>('/api/cart/remove', { data: payload });
   return data;
 }
 
@@ -49,6 +49,6 @@ export async function clearCart(): Promise<Cart> {
     mockCart = { items: [] };
     return mockCart;
   }
-  const { data } = await api.post<Cart>('/api/cart/clear');
+  const { data } = await api.delete<Cart>('/api/cart/clear');
   return data;
 }

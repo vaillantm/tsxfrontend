@@ -1,20 +1,41 @@
 import { api } from './api';
-import type { OrderStatus, Order, CreateOrderPayload } from '../models/order';
+import type { OrderStatus, Order } from '../models/order';
 
 const USE_MOCK = import.meta.env?.VITE_USE_MOCK !== 'false';
 
 const mockOrders: Order[] = [];
 
+type BackendOrder = {
+  id?: string;
+  _id?: string;
+  createdAt: string;
+  status: OrderStatus;
+  totalAmount: number;
+  items: Order['items'];
+};
+
+function mapBackendOrder(o: BackendOrder): Order {
+  const resolvedId = o._id ?? o.id ?? '';
+  return {
+    id: resolvedId,
+    _id: o._id ?? o.id,
+    createdAt: o.createdAt,
+    status: o.status,
+    totalAmount: o.totalAmount,
+    items: o.items,
+  };
+}
+
 export async function list(): Promise<Order[]> {
   if (USE_MOCK) return mockOrders;
-  const { data } = await api.get<Order[]>('/api/orders');
-  return data;
+  const { data } = await api.get<BackendOrder[]>('/api/orders');
+  return data.map(mapBackendOrder);
 }
 
 export async function listAdmin(): Promise<Order[]> {
   if (USE_MOCK) return mockOrders;
-  const { data } = await api.get<Order[]>('/api/orders/admin/all');
-  return data;
+  const { data } = await api.get<BackendOrder[]>('/api/admin/orders');
+  return data.map(mapBackendOrder);
 }
 
 export async function getById(id: string): Promise<Order> {
@@ -23,20 +44,19 @@ export async function getById(id: string): Promise<Order> {
     if (!o) throw new Error('Order not found');
     return o;
   }
-  const { data } = await api.get<Order>(`/api/orders/${id}`);
-  return data;
+  const { data } = await api.get<BackendOrder>(`/api/orders/${id}`);
+  return mapBackendOrder(data);
 }
 
-export async function create(payload: CreateOrderPayload): Promise<Order> {
+export async function create(): Promise<Order> {
   if (USE_MOCK) {
     const id = String(mockOrders.length + 1);
-    const total = payload.items.reduce((s, i) => s + i.price * i.quantity, 0);
-    const order: Order = { id, createdAt: new Date().toISOString(), status: 'pending', total, items: payload.items };
+    const order: Order = { id, createdAt: new Date().toISOString(), status: 'pending', totalAmount: 0, items: [] };
     mockOrders.unshift(order);
     return order;
   }
-  const { data } = await api.post<Order>('/api/orders', payload);
-  return data;
+  const { data } = await api.post<BackendOrder>('/api/orders');
+  return mapBackendOrder(data);
 }
 
 export async function cancel(id: string): Promise<Order> {
@@ -46,8 +66,8 @@ export async function cancel(id: string): Promise<Order> {
     mockOrders[idx] = { ...mockOrders[idx], status: 'cancelled' };
     return mockOrders[idx];
   }
-  const { data } = await api.patch<Order>(`/api/orders/${id}/cancel`);
-  return data;
+  const { data } = await api.patch<BackendOrder>(`/api/orders/${id}/cancel`);
+  return mapBackendOrder(data);
 }
 
 export async function updateStatus(id: string, status: OrderStatus): Promise<Order> {
@@ -57,6 +77,6 @@ export async function updateStatus(id: string, status: OrderStatus): Promise<Ord
     mockOrders[idx] = { ...mockOrders[idx], status };
     return mockOrders[idx];
   }
-  const { data } = await api.patch<Order>(`/api/orders/admin/${id}/status`, { status });
-  return data;
+  const { data } = await api.patch<BackendOrder>(`/api/admin/orders/${id}/status`, { status });
+  return mapBackendOrder(data);
 }

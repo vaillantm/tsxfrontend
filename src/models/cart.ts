@@ -1,9 +1,9 @@
 export interface CartItem {
-  productId: number;
-  name: string;
-  price: number;
+  productId: string;
+  name?: string;
+  price?: number;
   quantity: number;
-  img?: string;
+  image?: string;
 }
 
 export interface Cart {
@@ -11,15 +11,15 @@ export interface Cart {
 }
 
 export interface AddToCartPayload {
-  productId: number;
+  productId: string;
   quantity: number;
 }
 
 export interface UpdateQuantityPayload {
-  productId: number;
+  productId: string;
   quantity: number;
 }
 
 export interface RemoveFromCartPayload {
-  productId: number;
+  productId: string;
 }

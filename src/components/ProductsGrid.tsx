@@ -1,4 +1,3 @@
-import { Star } from 'lucide-react';
 import type { Product } from '../models/product'; // Correct Product import
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
@@ -21,12 +20,12 @@ const ProductsGrid = ({ products, categories }: Props) => {
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-12">
       {products.map(product => (
         <div 
-          key={product.id} 
+          key={product._id} 
           className="group cursor-pointer"
-          onClick={() => navigate(`/product/${product.id}`, { state: { product } })}
+          onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/product/${product.id}`, { state: { product } }); }}
+          onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/product/${product._id}`, { state: { product } }); }}
         >
           <div className="bg-gray-50 aspect-square flex items-center justify-center p-8 mb-4 relative overflow-hidden rounded-md border border-gray-100">
             <img 
@@ -52,7 +51,7 @@ const ProductsGrid = ({ products, categories }: Props) => {
                 onClick={(e) => {
                   e.stopPropagation();
                   addItem({
-                    id: product.id,
+                    id: product._id,
                     name: product.name,
                     price: product.price,
                     image: product.images[0] || 'https://via.placeholder.com/400x400?text=No+Image',

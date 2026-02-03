@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Maximize, Star, Tag, CreditCard } from 'lucide-react';
+import { Maximize, Tag, CreditCard } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useProduct } from '../hooks/useProducts';
+import type { Product } from '../models/product';
 
 // Layout Components
 import TopBar from '../components/TopBar';
@@ -11,14 +13,7 @@ import Footer from '../components/Footer';
 import CartSidebar from '../components/CartSidebar';
 
 type LocationState = {
-  product?: {
-    id: number;
-    name: string;
-    tags: string;
-    price: number;
-    rating: number;
-    img: string;
-  };
+  product?: Product;
 };
 
 const ProductDetail = () => {
@@ -34,16 +29,25 @@ const ProductDetail = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
-  const p = state.product;
-  const productId = id ? Number(id) : undefined;
+  const pFromState = state.product;
+  const { data: pFromApi, isLoading } = useProduct(id || '');
+  const p = pFromState || pFromApi;
 
   // Derived Values for Header
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
+  if (!p && isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Loading product...
+      </div>
+    );
+  }
+
   if (!p) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-4">
-        <h2 className="text-2xl font-bold">Product Not Found{productId ? ` (#${productId})` : ''}</h2>
+        <h2 className="text-2xl font-bold">Product Not Found</h2>
         <p className="text-gray-600">We couldn't load the product details. Please return to the shop.</p>
         <button
           onClick={() => navigate('/shop/jewellery')}
@@ -58,6 +62,7 @@ const ProductDetail = () => {
   const price = p.price;
   const oldPrice = Math.max(price * 1.3, price + 1);
   const discount = Math.round(((oldPrice - price) / oldPrice) * 100);
+  const primaryImage = p.images?.[0] || 'https://via.placeholder.com/600x600?text=No+Image';
 
   return (
     <div className="min-h-screen flex flex-col bg-white font-poppins">
@@ -89,12 +94,12 @@ const ProductDetail = () => {
               <div className="hidden md:flex flex-col gap-4 w-20">
                 {Array(4).fill(0).map((_, idx) => (
                   <div key={idx} className="border p-2 rounded cursor-pointer opacity-60 hover:opacity-100">
-                    <img src={p.img} alt={p.name} className="mix-blend-multiply" />
+                    <img src={primaryImage} alt={p.name} className="mix-blend-multiply" />
                   </div>
                 ))}
               </div>
               <div className="flex-1 bg-gray-50 border rounded-xl flex items-center justify-center p-8 md:p-12 relative">
-                <img src={p.img} alt={p.name} className="mix-blend-multiply max-w-full h-auto" />
+                <img src={primaryImage} alt={p.name} className="mix-blend-multiply max-w-full h-auto" />
                 <button className="absolute bottom-4 right-4 p-2 bg-white rounded-full shadow-md">
                   <Maximize className="w-5 h-5" />
                 </button>
@@ -104,12 +109,6 @@ const ProductDetail = () => {
             {/* Product Info */}
             <div className="w-full lg:w-1/2">
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">{p.name}</h1>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="bg-green-600 text-white text-xs px-2 py-0.5 rounded flex items-center gap-1">
-                  {p.rating.toFixed(1)} <Star className="w-3 h-3 fill-current" />
-                </div>
-                <span className="text-gray-400 text-xs">(1.2k Reviews)</span>
-              </div>
 
               {/* Countdown */}
               <div className="flex gap-3 mb-6">
@@ -163,13 +162,10 @@ const ProductDetail = () => {
                   className="bg-orange-500 hover:bg-orange-600 text-white font-bold h-12 px-8 rounded flex-1 uppercase tracking-widest text-sm transition-colors"
                   onClick={() => {
                     addItem({
-                      id: p.id,
+                      id: p._id,
                       name: p.name,
-                      category: p.tags,
                       price: p.price,
-                      rating: p.rating,
-                      reviews: 1200,
-                      image: p.img,
+                      image: primaryImage,
                     }, quantity);
                     setIsCartOpen(true); // Open sidebar to show success
                   }}

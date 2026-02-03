@@ -1,4 +1,4 @@
-import type { Product } from '../models/product';
+import type { Product } from '../types';
 
 export const mockProducts: Product[] = [
   { id: 1, name: 'Gold Peacock Earrings', tags: 'EARRINGS', price: 48, rating: 3, img: 'https://images.unsplash.com/photo-1635767798638-3e25273a8236?w=400' },

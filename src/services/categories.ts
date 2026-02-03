@@ -7,16 +7,19 @@ const USE_MOCK = import.meta.env?.VITE_USE_MOCK !== 'false';
 let mockCategories: Category[] = dataCategories;
 
 type BackendCategory = {
-  id: string;
+  id?: string;
+  _id?: string;
   name: string;
-  slug: string;
+  path: string;
   description?: string;
   image?: string;
 };
 
 function mapBackendCategory(c: BackendCategory): Category {
+  const resolvedId = c._id ?? c.id ?? '';
   return {
-    id: c.id,
+    id: resolvedId,
+    _id: c._id ?? c.id,
     name: c.name,
     path: c.path,
     description: c.description,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCreateCategory, useUpdateCategory } from '../hooks/useCategories';
 import type { Category } from '../models/category';
+import { useToast } from '../context/ToastContext';
 
 interface CategoryFormModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ const CategoryFormModal: React.FC<CategoryFormModalProps> = ({ isOpen, onClose, 
   const [image, setImage] = useState<File | null>(null);
   const createCategoryMutation = useCreateCategory();
   const updateCategoryMutation = useUpdateCategory();
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (categoryToEdit) {
@@ -51,12 +53,18 @@ const CategoryFormModal: React.FC<CategoryFormModalProps> = ({ isOpen, onClose, 
       formData.append('image', image);
     }
 
-    if (categoryToEdit) {
-      await updateCategoryMutation.mutateAsync({ id: categoryToEdit.id, data: formData });
-    } else {
-      await createCategoryMutation.mutateAsync(formData);
+    try {
+      if (categoryToEdit) {
+        await updateCategoryMutation.mutateAsync({ id: categoryToEdit.id, data: formData });
+        showToast('Category updated successfully', 'success');
+      } else {
+        await createCategoryMutation.mutateAsync(formData);
+        showToast('Category created successfully', 'success');
+      }
+      onClose();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Category save failed', 'error');
     }
-    onClose();
   };
 
   if (!isOpen) return null;
