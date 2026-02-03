@@ -11,7 +11,7 @@ import Footer from '../components/Footer';
 import CartSidebar from '../components/CartSidebar';
 
 
-import { Accessibility } from 'lucide-react';
+
 
 
 const CustomerDashboard: React.FC = () => {

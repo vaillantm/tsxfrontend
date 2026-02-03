@@ -14,7 +14,7 @@ import AdminDashboard from './role/AdminDashboard';
 import VendorDashboard from './role/VendorDashboard';
 import CustomerDashboard from './role/CustomerDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
-import Admino from './role/Admino';
+
 
 import Products from './role/Products';
 // import Dashboard from 'role/Dashboard';
@@ -34,7 +34,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/category/:type" element={<Category />} />
-          <Route path="/admino" element={<Admino />} />
+  
            <Route path="/sign-in" element={<SignIn />} />
           <Route path="/shop/:type" element={<ShopTypeApi />} />
           <Route path="/shop" element={<ShopApi />} />

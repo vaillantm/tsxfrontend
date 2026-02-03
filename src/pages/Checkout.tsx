@@ -10,6 +10,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { items, subtotal, clear } = useCart();
   const createOrderMutation = useCreateOrder();
+
   const shipping = items.length > 0 ? 5 : 0;
   const total = subtotal + shipping;
 
@@ -30,7 +31,6 @@ const Checkout = () => {
 
       <main className="flex-1">
         <div className="max-w-[1200px] mx-auto px-4 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Billing details */}
           <section className="lg:col-span-2 bg-white p-6 border rounded">
             <h2 className="text-xl font-semibold mb-4">Billing details</h2>
             <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -81,25 +81,34 @@ const Checkout = () => {
               </div>
               <div className="md:col-span-2">
                 <label className="text-sm font-semibold">Order notes (optional)</label>
-                <textarea className="w-full border px-3 py-2 mt-1" rows={4} placeholder="Notes about your order, e.g. special notes for delivery." />
+                <textarea
+                  className="w-full border px-3 py-2 mt-1"
+                  rows={4}
+                  placeholder="Notes about your order, e.g. special notes for delivery."
+                />
               </div>
             </form>
           </section>
 
-          {/* Order Summary */}
           <aside className="bg-white p-6 border rounded h-max">
             <h3 className="text-lg font-semibold mb-4">Your order</h3>
+
             <div className="divide-y">
               {items.map((item) => (
-                <div key={item.id} className="py-4 flex items-start gap-3">
+                <div key={item.productId} className="py-4 flex items-start gap-3">
                   <img src={item.image} alt={item.name} className="w-12 h-12 object-cover border" />
                   <div className="flex-1">
-                    <div className="text-sm text-gray-800">{item.name} × {item.quantity}</div>
+                    <div className="text-sm text-gray-800">
+                      {item.name} × {item.quantity}
+                    </div>
                   </div>
-                  <div className="text-sm font-semibold">${(item.price * item.quantity).toFixed(2)}</div>
+                  <div className="text-sm font-semibold">
+                    ${(item.price * item.quantity).toFixed(2)}
+                  </div>
                 </div>
               ))}
             </div>
+
             <div className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span>Subtotal</span>

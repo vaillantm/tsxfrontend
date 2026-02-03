@@ -48,7 +48,10 @@ const CartSidebar = (props: CartSidebarProps) => {
               SHOPPING CART IS EMPTY!
             </p>
             <button
-              onClick={() => { navigate('/shop/jewellery'); handleClose(); }}
+              onClick={() => {
+                navigate('/shop/jewellery');
+                handleClose();
+              }}
               className="bg-blue-600 text-white border-none py-4 px-10 font-bold cursor-pointer w-full uppercase transition hover:bg-blue-700"
             >
               CONTINUE SHOPPING
@@ -58,18 +61,39 @@ const CartSidebar = (props: CartSidebarProps) => {
           <>
             <div className="flex-1 overflow-y-auto">
               {items.map((item) => (
-                <div key={item.id} className="flex p-4 border-b border-gray-100 items-start">
+                <div key={item.productId} className="flex p-4 border-b border-gray-100 items-start">
                   <img src={item.image} alt={item.name} className="w-[75px] h-auto border border-gray-200" />
                   <div className="flex-1 pl-4">
                     <div className="flex justify-between items-start">
                       <div className="text-[14px] text-slate-700 leading-tight pr-2">{item.name}</div>
-                      <button className="text-slate-400 text-lg" onClick={() => removeItem(item.id)}>&times;</button>
+                      <button
+                        className="text-slate-400 text-lg"
+                        onClick={() => removeItem(item.productId)}
+                      >
+                        &times;
+                      </button>
                     </div>
+
                     <div className="flex items-center mt-2 mb-2">
-                      <button className="w-8 h-8 border border-gray-200 text-slate-500" onClick={() => updateQty(item.id, item.quantity - 1)}>-</button>
-                      <input className="w-10 h-[30px] border-y border-gray-200 text-center text-slate-600" value={item.quantity} readOnly />
-                      <button className="w-8 h-8 border border-gray-200 text-slate-500" onClick={() => updateQty(item.id, item.quantity + 1)}>+</button>
+                      <button
+                        className="w-8 h-8 border border-gray-200 text-slate-500"
+                        onClick={() => updateQty(item.productId, item.quantity - 1)}
+                      >
+                        -
+                      </button>
+                      <input
+                        className="w-10 h-[30px] border-y border-gray-200 text-center text-slate-600"
+                        value={item.quantity}
+                        readOnly
+                      />
+                      <button
+                        className="w-8 h-8 border border-gray-200 text-slate-500"
+                        onClick={() => updateQty(item.productId, item.quantity + 1)}
+                      >
+                        +
+                      </button>
                     </div>
+
                     <div className="text-[15px] text-slate-800">
                       {item.quantity} × <strong className="text-[18px]">${item.price.toFixed(2)}</strong>
                     </div>
@@ -83,25 +107,43 @@ const CartSidebar = (props: CartSidebarProps) => {
                 <span>SUBTOTAL:</span>
                 <span>${subtotal.toFixed(2)}</span>
               </div>
+
               <div className="bg-slate-100 h-3 w-full mb-2">
-                <div className="bg-blue-600 h-3 text-white text-[10px] flex items-center justify-center" style={{ width: `${progress}%` }}>{progress}%</div>
+                <div
+                  className="bg-blue-600 h-3 text-white text-[10px] flex items-center justify-center"
+                  style={{ width: `${progress}%` }}
+                >
+                  {progress}%
+                </div>
               </div>
+
               <p className="text-[13px] text-slate-600 text-center mb-4">
                 {toFreeShipping > 0 ? (
-                  <>Spend <strong>${toFreeShipping.toFixed(2)}</strong> to get free shipping</>
+                  <>
+                    Spend <strong>${toFreeShipping.toFixed(2)}</strong> to get free shipping
+                  </>
                 ) : (
-                  <>You have unlocked <strong>free shipping</strong>!</>
+                  <>
+                    You have unlocked <strong>free shipping</strong>!
+                  </>
                 )}
               </p>
+
               <button
                 className="w-full bg-blue-600 text-white font-bold py-3 rounded mb-2"
-                onClick={() => { navigate('/cart'); }}
+                onClick={() => {
+                  navigate('/cart');
+                }}
               >
                 VIEW CART
               </button>
-              <button 
+
+              <button
                 className="w-full bg-orange-500 text-white font-bold py-3 rounded"
-                onClick={() => { navigate('/checkout'); handleClose(); }}
+                onClick={() => {
+                  navigate('/checkout');
+                  handleClose();
+                }}
               >
                 CHECKOUT
               </button>
@@ -111,11 +153,9 @@ const CartSidebar = (props: CartSidebarProps) => {
       </div>
 
       <div
-        className={`fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[1000] ${
-          isOpenDisplay ? 'block' : 'hidden'
-        }`}
+        className={`fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[1000] ${isOpenDisplay ? 'block' : 'hidden'}`}
         onClick={handleClose}
-      ></div>
+      />
     </>
   );
 };
